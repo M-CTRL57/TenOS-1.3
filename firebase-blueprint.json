@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "UserPreferences": {
+      "title": "User Preferences",
+      "description": "User specific settings in TenOS",
+      "type": "object",
+      "properties": {
+        "wallpaper": {
+          "type": "string",
+          "description": "Desktop wallpaper URL"
+        },
+        "lockScreenWallpaper": {
+          "type": "string",
+          "description": "Lock screen wallpaper URL"
+        },
+        "themeColor": {
+          "type": "string",
+          "description": "Theme color like red, black, etc."
+        }
+      }
+    }
+  },
+  "firestore": {
+    "preferences/{userId}": {
+      "schema": {
+        "$ref": "UserPreferences"
+      },
+      "description": "Preferences for a specific user"
+    }
+  }
+}
