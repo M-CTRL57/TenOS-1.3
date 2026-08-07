@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const accounts = ['GsmearBaba', 'YİĞİTBABAPİRO', 'MERTOOO', 'MERTOOOO', 'APPLEABİ', 'CİPÖMER2016'];
 
 const games = [
+  { id: 99, name: 'Yılan Oyunu', cover: 'https://picsum.photos/seed/yilan/300/400' },
   { id: 1, name: 'Blok Dünyası 2D', cover: 'https://picsum.photos/seed/blok2d/300/400' },
   { id: 2, name: 'Race on Fox', cover: 'https://picsum.photos/seed/racefox/300/400' },
   { id: 3, name: 'Block Craft 3D', cover: 'https://picsum.photos/seed/blockcraft/300/400' },
@@ -22,7 +23,7 @@ const games = [
   { id: 15, name: 'Madenci Kardeşler', cover: 'https://picsum.photos/seed/maden/300/400' },
 ];
 
-export default function SteamApp() {
+export default function SteamApp({ onOpenSnake }: { onOpenSnake?: () => void }) {
   const [appState, setAppState] = useState<'connecting' | 'login' | 'loggedIn'>('connecting');
   const [accountName, setAccountName] = useState<string>('');
   const [errorModal, setErrorModal] = useState<{ open: boolean, step: number }>({ open: false, step: 1 });
@@ -153,7 +154,17 @@ export default function SteamApp() {
                             <div key={game.id} className="bg-[#171a21] group relative overflow-hidden cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
                                 <img src={game.cover} alt={game.name} className="w-full aspect-[3/4] object-cover transition-opacity group-hover:opacity-40" />
                                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={handleDownload} className="bg-[#66c0f4] hover:bg-[#4194c4] text-white px-6 py-2 rounded-sm font-medium transition-colors text-sm shadow-lg transform hover:scale-105">
+                                    <button 
+                                        onClick={() => {
+                                            if (game.id === 99) {
+                                                onOpenSnake?.();
+                                                setTimeout(() => alert('Yılan oyunu masaüstüne eklendi ve açılıyor!'), 500);
+                                            } else {
+                                                handleDownload();
+                                            }
+                                        }} 
+                                        className="bg-[#66c0f4] hover:bg-[#4194c4] text-white px-6 py-2 rounded-sm font-medium transition-colors text-sm shadow-lg transform hover:scale-105"
+                                    >
                                         İndir
                                     </button>
                                 </div>

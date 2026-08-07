@@ -143,7 +143,7 @@ export default function FilesApp({ onCrash, onClose }: { onCrash?: () => void; o
 
   return (
     <div className="h-full flex bg-[#111] text-[#e0e0e0] font-sans">
-      <div className="w-48 bg-[#0a0a0a] border-r border-white/10 flex flex-col p-2 space-y-1">
+      <div className="w-48 bg-[#0a0a0a] border-r border-white/10 flex flex-col p-2 space-y-1" style={{ height: '550px', width: '193px' }}>
         <button 
           onClick={() => setCurrentPath('home')}
           className={`flex items-center gap-3 p-2 rounded w-full text-left transition ${currentPath === 'home' ? 'bg-white/10' : 'hover:bg-white/5'}`}

@@ -20,7 +20,7 @@ export default function Taskbar({
   setSearchMode: (mode: 'app' | 'internet') => void;
 }) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#1a1a1a]/90 backdrop-blur-md border-t border-white/10 flex items-center px-2 gap-2 text-white">
+    <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#1a1a1a]/90 backdrop-blur-md border-t border-white/10 flex items-center px-2 gap-2 text-white z-50">
       <button onClick={onToggleStart} className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded flex items-center justify-center font-black text-xl hover:opacity-90">T</button>
       
       <div className="relative flex items-center w-64">

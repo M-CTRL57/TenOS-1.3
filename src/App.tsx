@@ -25,6 +25,11 @@ import MarkdownNotesApp from './components/MarkdownNotesApp';
 import PdfViewerApp from './components/PdfViewerApp';
 import TPlayerApp from './components/TPlayerApp';
 import SYPmailApp from './components/SYPmailApp';
+import SnakeGameApp from './components/SnakeGameApp';
+import AppStoreApp from './components/AppStoreApp';
+import CalculatorApp from './components/CalculatorApp';
+import InfoApp from './components/InfoApp';
+import KankaAIApp from './components/KankaAIApp';
 import StartMenu from './components/StartMenu';
 import Toast from './components/Toast';
 import SystemTray from './components/SystemTray';
@@ -113,10 +118,46 @@ export default function App() {
     markdownNotes: { open: false, minimized: false, maximized: false },
     pdfViewer: { open: false, minimized: false, maximized: false },
     tplayer: { open: false, minimized: false, maximized: false },
-    sypmail: { open: false, minimized: false, maximized: false }
+    sypmail: { open: false, minimized: false, maximized: false },
+    store: { open: false, minimized: false, maximized: false },
+    snake: { open: false, minimized: false, maximized: false },
+    calculator: { open: false, minimized: false, maximized: false },
+    info: { open: false, minimized: false, maximized: false },
+    kanka: { open: false, minimized: false, maximized: false },
+    webAppWindow: { open: false, minimized: false, maximized: false }
   });
 
+  const [activeWindow, setActiveWindow] = useState<string | null>(null);
+
   const [searchMode, setSearchMode] = useState<'app' | 'internet'>('app');
+
+  const [installedApps, setInstalledApps] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('tenos_installed_apps');
+      return saved ? JSON.parse(saved) : ['store'];
+    } catch {
+      return ['store'];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tenos_installed_apps', JSON.stringify(installedApps));
+  }, [installedApps]);
+
+  const [customApps, setCustomApps] = useState<{ id: string, name: string, icon: string, url: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('tenos_custom_apps');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tenos_custom_apps', JSON.stringify(customApps));
+  }, [customApps]);
+
+  const [currentWebApp, setCurrentWebApp] = useState<{ id: string, name: string, url: string, icon?: string } | null>(null);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -201,6 +242,8 @@ export default function App() {
       )}
 
       <Desktop 
+        installedApps={installedApps}
+        customApps={customApps}
         wallpaper={wallpaper}
         onTrashDrop={() => showToast('BURP! Daha fazla veri ver!')}
         onOpenSteam={() => setWindows(prev => ({ ...prev, steam: { ...prev.steam, open: true, minimized: false } }))} 
@@ -212,6 +255,23 @@ export default function App() {
         onOpenPdfViewer={() => setWindows(prev => ({ ...prev, pdfViewer: { ...prev.pdfViewer, open: true, minimized: false } }))}
         onOpenTPlayer={() => setWindows(prev => ({ ...prev, tplayer: { ...prev.tplayer, open: true, minimized: false } }))}
         onOpenSYPmail={() => setWindows(prev => ({ ...prev, sypmail: { ...prev.sypmail, open: true, minimized: false } }))}
+        onOpenStore={() => setWindows(prev => ({ ...prev, store: { ...prev.store, open: true, minimized: false } }))}
+        onOpenSnake={() => setWindows(prev => ({ ...prev, snake: { ...prev.snake, open: true, minimized: false } }))}
+        onOpenCalculator={() => setWindows(prev => ({ ...prev, calculator: { ...prev.calculator, open: true, minimized: false } }))}
+        onOpenTextEditor={() => setWindows(prev => ({ ...prev, markdownNotes: { ...prev.markdownNotes, open: true, minimized: false } }))}
+        onOpenInfo={() => setWindows(prev => ({ ...prev, info: { ...prev.info, open: true, minimized: false } }))}
+        onOpenKankaAI={() => setWindows(prev => ({ ...prev, kanka: { ...prev.kanka, open: true, minimized: false } }))}
+        onOpenWikipedia={() => {
+          setCurrentWebApp({ id: 'wikipedia', name: 'Vikipedi PWA', url: 'https://tr.wikipedia.org/' });
+          setWindows(prev => ({ ...prev, webAppWindow: { open: true, minimized: false, maximized: false } }));
+        }}
+        onOpenCustomApp={(id: string) => {
+          const app = customApps.find(a => a.id === id);
+          if (app) {
+            setCurrentWebApp(app);
+            setWindows(prev => ({ ...prev, webAppWindow: { open: true, minimized: false, maximized: false } }));
+          }
+        }}
         onRefresh={() => showToast('Cihazınız yenilendi')}
       />
       
@@ -260,6 +320,8 @@ export default function App() {
           onMaximize={() => setWindows(prev => ({ ...prev, files: { ...prev.files, maximized: !prev.files.maximized } }))}
           isMaximized={windows.files.maximized}
           themeColor={themeColor}
+          isActive={activeWindow === 'files'}
+          onFocus={() => setActiveWindow('files')}
         >
           <FilesApp 
             onClose={() => setWindows(prev => ({ ...prev, files: { ...prev.files, open: false } }))} 
@@ -276,6 +338,8 @@ export default function App() {
           onMaximize={() => setWindows(prev => ({ ...prev, settings: { ...prev.settings, maximized: !prev.settings.maximized } }))}
           isMaximized={windows.settings.maximized}
           themeColor={themeColor}
+          isActive={activeWindow === 'settings'}
+          onFocus={() => setActiveWindow('settings')}
         >
           <SettingsApp 
             onOpenBios={() => setAppState('bios')} 
@@ -301,6 +365,8 @@ export default function App() {
           onMaximize={() => setWindows(prev => ({ ...prev, about: { ...prev.about, maximized: !prev.about.maximized } }))}
           isMaximized={windows.about.maximized}
           themeColor={themeColor}
+          isActive={activeWindow === 'about'}
+          onFocus={() => setActiveWindow('about')}
         >
           <AboutApp onStartDefrag={startDefrag} />
         </WindowWrapper>
@@ -314,6 +380,8 @@ export default function App() {
           onMaximize={() => setWindows(prev => ({ ...prev, news: { ...prev.news, maximized: !prev.news.maximized } }))}
           isMaximized={windows.news.maximized}
           themeColor={themeColor}
+          isActive={activeWindow === 'news'}
+          onFocus={() => setActiveWindow('news')}
         >
           <NewsApp />
         </WindowWrapper>
@@ -326,6 +394,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, browser: { ...prev.browser, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, browser: { ...prev.browser, maximized: !prev.browser.maximized } }))}
           isMaximized={windows.browser.maximized}
+          isActive={activeWindow === 'browser'}
+          onFocus={() => setActiveWindow('browser')}
         >
           <BrowserApp onClose={() => setWindows(prev => ({ ...prev, browser: { ...prev.browser, open: false } }))} />
         </WindowWrapper>
@@ -338,6 +408,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, camera: { ...prev.camera, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, camera: { ...prev.camera, maximized: !prev.camera.maximized } }))}
           isMaximized={windows.camera.maximized}
+          isActive={activeWindow === 'camera'}
+          onFocus={() => setActiveWindow('camera')}
         >
           <CameraApp />
         </WindowWrapper>
@@ -350,6 +422,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, gallery: { ...prev.gallery, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, gallery: { ...prev.gallery, maximized: !prev.gallery.maximized } }))}
           isMaximized={windows.gallery.maximized}
+          isActive={activeWindow === 'gallery'}
+          onFocus={() => setActiveWindow('gallery')}
         >
           <GalleryApp />
         </WindowWrapper>
@@ -362,8 +436,13 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, steam: { ...prev.steam, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, steam: { ...prev.steam, maximized: !prev.steam.maximized } }))}
           isMaximized={windows.steam.maximized}
+          isActive={activeWindow === 'steam'}
+          onFocus={() => setActiveWindow('steam')}
         >
-          <SteamApp />
+          <SteamApp onOpenSnake={() => {
+            setWindows(prev => ({ ...prev, snake: { ...prev.snake, open: true, minimized: false } }));
+            setInstalledApps(prev => prev.includes('snake') ? prev : [...prev, 'snake']);
+          }} />
         </WindowWrapper>
       )}
 
@@ -374,6 +453,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, resourceMonitor: { ...prev.resourceMonitor, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, resourceMonitor: { ...prev.resourceMonitor, maximized: !prev.resourceMonitor.maximized } }))}
           isMaximized={windows.resourceMonitor.maximized}
+          isActive={activeWindow === 'resourceMonitor'}
+          onFocus={() => setActiveWindow('resourceMonitor')}
         >
           <ResourceMonitorApp />
         </WindowWrapper>
@@ -386,6 +467,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, hackerBrowser: { ...prev.hackerBrowser, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, hackerBrowser: { ...prev.hackerBrowser, maximized: !prev.hackerBrowser.maximized } }))}
           isMaximized={windows.hackerBrowser.maximized}
+          isActive={activeWindow === 'hackerBrowser'}
+          onFocus={() => setActiveWindow('hackerBrowser')}
         >
           <HackerBrowserApp onTriggerVirus={() => setAppState('bsod')} />
         </WindowWrapper>
@@ -398,6 +481,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, codeEditor: { ...prev.codeEditor, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, codeEditor: { ...prev.codeEditor, maximized: !prev.codeEditor.maximized } }))}
           isMaximized={windows.codeEditor.maximized}
+          isActive={activeWindow === 'codeEditor'}
+          onFocus={() => setActiveWindow('codeEditor')}
         >
           <CodeEditorApp />
         </WindowWrapper>
@@ -410,6 +495,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, debugConsole: { ...prev.debugConsole, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, debugConsole: { ...prev.debugConsole, maximized: !prev.debugConsole.maximized } }))}
           isMaximized={windows.debugConsole.maximized}
+          isActive={activeWindow === 'debugConsole'}
+          onFocus={() => setActiveWindow('debugConsole')}
         >
           <DebugConsoleApp />
         </WindowWrapper>
@@ -422,6 +509,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, markdownNotes: { ...prev.markdownNotes, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, markdownNotes: { ...prev.markdownNotes, maximized: !prev.markdownNotes.maximized } }))}
           isMaximized={windows.markdownNotes.maximized}
+          isActive={activeWindow === 'markdownNotes'}
+          onFocus={() => setActiveWindow('markdownNotes')}
         >
           <MarkdownNotesApp />
         </WindowWrapper>
@@ -434,6 +523,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, pdfViewer: { ...prev.pdfViewer, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, pdfViewer: { ...prev.pdfViewer, maximized: !prev.pdfViewer.maximized } }))}
           isMaximized={windows.pdfViewer.maximized}
+          isActive={activeWindow === 'pdfViewer'}
+          onFocus={() => setActiveWindow('pdfViewer')}
         >
           <PdfViewerApp />
         </WindowWrapper>
@@ -446,6 +537,8 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, tplayer: { ...prev.tplayer, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, tplayer: { ...prev.tplayer, maximized: !prev.tplayer.maximized } }))}
           isMaximized={windows.tplayer.maximized}
+          isActive={activeWindow === 'tplayer'}
+          onFocus={() => setActiveWindow('tplayer')}
         >
           <TPlayerApp />
         </WindowWrapper>
@@ -458,8 +551,133 @@ export default function App() {
           onMinimize={() => setWindows(prev => ({ ...prev, sypmail: { ...prev.sypmail, minimized: true } }))}
           onMaximize={() => setWindows(prev => ({ ...prev, sypmail: { ...prev.sypmail, maximized: !prev.sypmail.maximized } }))}
           isMaximized={windows.sypmail.maximized}
+          isActive={activeWindow === 'sypmail'}
+          onFocus={() => setActiveWindow('sypmail')}
         >
           <SYPmailApp />
+        </WindowWrapper>
+      )}
+
+      {windows.store.open && !windows.store.minimized && (
+        <WindowWrapper 
+          title="blue" 
+          onClose={() => setWindows(prev => ({ ...prev, store: { ...prev.store, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, store: { ...prev.store, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, store: { ...prev.store, maximized: !prev.store.maximized } }))}
+          isMaximized={windows.store.maximized}
+          isActive={activeWindow === 'store'}
+          onFocus={() => setActiveWindow('store')}
+        >
+          <AppStoreApp 
+            installedApps={installedApps} 
+            onInstallApp={(id) => {
+              setInstalledApps(prev => prev.includes(id) ? prev : [...prev, id]);
+              showToast(
+                id.includes('widget') 
+                  ? 'Araç başarıyla kuruldu ve masaüstüne yerleştirildi!' 
+                  : (id === 'wikipedia')
+                    ? 'Web PWA uygulaması kuruldu, masaüstü kısayolu oluşturuldu.'
+                    : 'Uygulama başarıyla kuruldu ve masaüstüne eklendi!'
+              );
+            }}
+            onUninstallApp={(id) => {
+              setInstalledApps(prev => prev.filter(x => x !== id));
+              showToast('Uygulama/Araç başarıyla kaldırıldı.');
+            }}
+            customApps={customApps}
+            onAddCustomApp={(app) => {
+              setCustomApps(prev => [...prev, app]);
+              setInstalledApps(prev => prev.includes(app.id) ? prev : [...prev, app.id]);
+            }}
+            onDeleteCustomApp={(id) => {
+              setCustomApps(prev => prev.filter(x => x.id !== id));
+              setInstalledApps(prev => prev.filter(x => x !== id));
+              showToast('Özel uygulama sistemden silindi.');
+            }}
+          />
+        </WindowWrapper>
+      )}
+
+      {windows.kanka.open && !windows.kanka.minimized && (
+        <WindowWrapper 
+          title="Kanka AI" 
+          onClose={() => setWindows(prev => ({ ...prev, kanka: { ...prev.kanka, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, kanka: { ...prev.kanka, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, kanka: { ...prev.kanka, maximized: !prev.kanka.maximized } }))}
+          isMaximized={windows.kanka.maximized}
+          isActive={activeWindow === 'kanka'}
+          onFocus={() => setActiveWindow('kanka')}
+        >
+          <KankaAIApp />
+        </WindowWrapper>
+      )}
+
+      {windows.snake.open && !windows.snake.minimized && (
+        <WindowWrapper 
+          title="Yılan Oyunu" 
+          onClose={() => setWindows(prev => ({ ...prev, snake: { ...prev.snake, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, snake: { ...prev.snake, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, snake: { ...prev.snake, maximized: !prev.snake.maximized } }))}
+          isMaximized={windows.snake.maximized}
+          isActive={activeWindow === 'snake'}
+          onFocus={() => setActiveWindow('snake')}
+        >
+          <SnakeGameApp onClose={() => setWindows(prev => ({ ...prev, snake: { ...prev.snake, open: false } }))} />
+        </WindowWrapper>
+      )}
+
+      {windows.calculator.open && !windows.calculator.minimized && (
+        <WindowWrapper 
+          title="Hesap Makinesi" 
+          onClose={() => setWindows(prev => ({ ...prev, calculator: { ...prev.calculator, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, calculator: { ...prev.calculator, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, calculator: { ...prev.calculator, maximized: !prev.calculator.maximized } }))}
+          isMaximized={windows.calculator.maximized}
+          isActive={activeWindow === 'calculator'}
+          onFocus={() => setActiveWindow('calculator')}
+        >
+          <CalculatorApp />
+        </WindowWrapper>
+      )}
+
+      {windows.info.open && !windows.info.minimized && (
+        <WindowWrapper 
+          title="TEN OS Hakkında" 
+          onClose={() => setWindows(prev => ({ ...prev, info: { ...prev.info, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, info: { ...prev.info, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, info: { ...prev.info, maximized: !prev.info.maximized } }))}
+          isMaximized={windows.info.maximized}
+          isActive={activeWindow === 'info'}
+          onFocus={() => setActiveWindow('info')}
+        >
+          <InfoApp />
+        </WindowWrapper>
+      )}
+
+      {windows.webAppWindow.open && !windows.webAppWindow.minimized && currentWebApp && (
+        <WindowWrapper 
+          title={currentWebApp.name} 
+          onClose={() => setWindows(prev => ({ ...prev, webAppWindow: { ...prev.webAppWindow, open: false } }))}
+          onMinimize={() => setWindows(prev => ({ ...prev, webAppWindow: { ...prev.webAppWindow, minimized: true } }))}
+          onMaximize={() => setWindows(prev => ({ ...prev, webAppWindow: { ...prev.webAppWindow, maximized: !prev.webAppWindow.maximized } }))}
+          isMaximized={windows.webAppWindow.maximized}
+          isActive={activeWindow === 'webAppWindow'}
+          onFocus={() => setActiveWindow('webAppWindow')}
+        >
+          <div className="flex flex-col w-full h-full bg-[#1e1e1e] text-white select-none">
+            <div className="h-9 bg-[#252526] border-b border-[#333] flex items-center justify-between px-4 text-[11px] text-gray-400 font-mono">
+              <span className="flex items-center gap-1.5"><span className="text-emerald-400 font-bold">●</span> Sınırlandırılmış Web Sandbox</span>
+              <span className="max-w-[200px] sm:max-w-md truncate text-gray-500">{currentWebApp.url}</span>
+              <span></span>
+            </div>
+            <iframe 
+              src={currentWebApp.url} 
+              className="flex-1 w-full bg-white text-black border-none"
+              title={currentWebApp.name}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </WindowWrapper>
       )}
 
